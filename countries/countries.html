@@ -1,0 +1,150 @@
+<html>
+<head>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Palanquin" rel="stylesheet">
+  <style>
+    body, html {
+      font-family: 'Palanquin', sans-serif;
+      color: #FFFFFF;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+    header {
+      position: fixed;
+      width: 100%;
+      height: 50px;
+      background-color: #112233;
+      box-shadow: 0px 3px 9px 1px rgba(0,0,0,0.32);
+      display: flex;
+      align-items: center;
+    }
+    .title {
+      padding: 1.0em;
+    }
+
+    circle {
+      stroke: black;
+      stroke-width: 1px;
+      fill: steelblue;
+      opacity: 0.9;
+    }
+
+    .chart-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tooltip {
+      display: none;
+      position: absolute;
+      text-align: left;
+      pointer-events: none;
+      width: 180px;
+      padding: 10px;
+      border: 1px solid #D5D5D5;
+      font-family: 'Palanquin', sans-serif;
+      color: #333;
+      font-size: 0.9em;
+      padding: 10px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.95);
+      color: #000;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      border: 1px solid rgba(200,200,200,0.85);
+    }
+    .tooltip .row {
+      display: flex;
+    }
+    .data-title {
+      font-weight: bold;
+    }
+    .data-text {
+      flex-grow: 1;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="title">2015 Country Population as Percentage of World</span>
+  </header>
+  <div class="chart-container">
+    <div id="bubble-chart"></div>
+    <div class="tooltip"></div>
+  </div>
+  <script>
+    var svg = d3.select("#bubble-chart").append("svg")
+      .attr("width", 900)
+      .attr("height", 680);
+
+    d3.csv("/world_population.csv")
+      .get(data => {
+        var currentYear = data.map(country => ({
+          name: country["Country Name"],
+          population: country["2015"]
+        }));
+
+        var worldPopulation = d3.sum(currentYear, d => d.population);
+
+        var normalizedCountries = currentYear.map(country => ({
+          name: country.name,
+          population: country.population,
+          percentage_world: country.population / worldPopulation
+        }));
+
+        var commaFormat = d3.format(",");
+        var rand255 = () => Math.ceil(Math.random() * 255);
+        var randRGB = () => `rgb(${rand255()}, ${rand255()}, ${rand255()})`;
+        var bubbles = svg.append("g").selectAll("circle")
+          .data(normalizedCountries)
+          .enter()
+          .append("circle")
+          .style("fill", randRGB)
+          .attr("r", d => Math.ceil(d.percentage_world * 1000))
+          .attr("cx", d => Math.ceil(Math.random(d.population) * 900))
+          .attr("cy", d => Math.ceil(Math.random(d.population) * 680))
+          .on("mouseenter", function(d) {
+            d3.select(this)
+              .style("opacity", "1")
+              .style("stroke-width", "4px");
+
+            var coords = d3.mouse(this);
+            d3.select(".tooltip")
+              .style("display", "inline-block")
+              .style("top", coords[1])
+              .style("left", coords[0])
+              .html(`
+                <div class="row">
+                  <div class='data-title'>Country: </div>
+                  <div class='data-text'>${d.name}</div>
+                </div>
+                <div class='row'>
+                  <div class='data-title'>Population: </div>
+                  <div class='data-text'>${commaFormat(d.population)}</div>
+                </div>
+              `);
+
+            console.log("Country:", d.name);
+            console.log("Population:",commaFormat(d.population));
+          })
+          .on("mouseleave", function(d) {
+            d3.select(this)
+              .style("stroke-width", "1px")
+              .style("opacity", "0.9");
+
+            d3.select(".tooltip")
+              .style("display", "none");
+          });
+
+
+        console.log("Num bubbles", bubbles.length);
+
+      })
+  </script>
+</body>
+</html>

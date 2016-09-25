@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <style>
+      body, html {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+      }
+      .container {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+      }
+      circle {
+        fill: rgb(224,225,226);
+      }
+      circle:hover {
+        cursor: pointer;
+      }
+      circle.blue {
+        fill: rgb(1,151,236);
+      }
+      circle.selected {
+        fill: white;
+        stroke: rgb(1,151,236);
+        stroke-width: 5px;
+      }
+
+      line {
+        stroke: rgb(224,225,226);
+        stroke-width: 5px;
+      }
+      line.blue {
+        stroke: rgb(1,151,236);
+      }
+
+      text {
+        text-anchor: middle;
+        font-family: 'Lato', sans-serif;
+        font-size: 15px;
+        color: rgb(52,53,54);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="timeline"></div>
+    </div>
+    <script>
+      var data = ["Milestone 1", "Milestone 2", "Milestone 3", "Milestone 4", "Milestone 5"];
+      var selected = 0;
+      var idxStart = 0;
+      var svg = d3.select("#timeline")
+        .append("svg")
+        .attr("width", (data.length + 1) * 100)
+        .attr("height", 150);
+
+      var drag = d3.drag()
+      .on("start", (d, i) => {
+        idxStart = i;
+      })
+      .on("end", (d, i) => {
+        highlightRange(idxStart, i);
+      });
+
+      var lines = svg.append("g").selectAll("line")
+        .data(data.slice(0, data.length - 1))
+        .enter()
+        .append("line")
+          .attr("x1", (d, i) => (i + 1) * 100)
+          .attr("x2", (d, i) => (i + 1) * 100 + 100)
+          .attr("y1", 50)
+          .attr("y2", 50);
+      var text = svg.append("g").selectAll("text")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("x", (d, i) => (i + 1) * 100)
+        .attr("y", 90)
+        .text(d => d);
+
+      var circles = svg.append("g").selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+          .attr("cx", (d, i) => (i + 1) * 100)
+          .attr("cy", 50)
+          .attr("r", 10)
+          .on("click", function(d, i) {
+            selected = i;
+            d3.select(this)
+              .classed("selected", true)
+              .attr("r", 16);
+            circles.filter((d, idx) => idx !== i)
+              .classed("selected", false)
+              .attr("r", 10);
+          })
+          .call(drag);
+
+
+      function highlightRange(idxStart, idxEnd) {
+        console.log("Range", idxStart, idxEnd);
+        circles
+          .attr("class", (d, i) => {
+            var isBoundary = i === idxStart || i === idxEnd;
+            if (i >= idxStart && i <= idxEnd) {
+              return "blue";
+            } else if (isBoundary) {
+              return "selected";
+            }
+            return "";
+          })
+          .attr("r", (d, i) => i === idxStart || i === idxEnd ? 16 : 10);
+
+        lines
+          .classed("blue", (d, i) => i > idxStart && i <= idxEnd);
+      }
+
+    </script>
+  </body>
+</html>

@@ -2,12 +2,13 @@
 <html>
   <head>
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+    <link href="https://fonts.googleapis.com/css?family=Palanquin" rel="stylesheet">
     <style>
       body, html {
         height: 100%;
         width: 100%;
         margin: 0;
+        font-family: 'Palanquin', sans-serif;
       }
       .container {
         display: flex;
@@ -15,7 +16,14 @@
         height: 100%;
         justify-content: center;
         align-items: center;
+        flex-wrap: wrap;
       }
+      #timeline {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+      }
+
       circle {
         fill: rgb(224,225,226);
       }
@@ -41,7 +49,6 @@
 
       text {
         text-anchor: middle;
-        font-family: 'Lato', sans-serif;
         font-size: 15px;
         color: rgb(52,53,54);
       }
@@ -50,6 +57,10 @@
   <body>
     <div class="container">
       <div id="timeline"></div>
+      <div class="question-container">
+        <h2>Questions to Answer (TO DO):</h2><br>
+        <span>How do you deselect the input?</span>
+      </div>
     </div>
     <script>
       var data = ["Milestone 1", "Milestone 2", "Milestone 3", "Milestone 4", "Milestone 5"];

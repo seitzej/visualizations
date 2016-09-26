@@ -12,6 +12,7 @@
     }
     header {
       position: fixed;
+      z-index: 1;
       width: 100%;
       height: 50px;
       background-color: #112233;
@@ -24,18 +25,20 @@
     }
 
     circle {
-      stroke: black;
+      stroke: #333435;
       stroke-width: 1px;
       fill: steelblue;
       opacity: 0.9;
     }
 
     .chart-container {
+      position: relative;
       display: flex;
       width: 100%;
       height: 100%;
       justify-content: center;
       align-items: center;
+      top: 50px;
     }
 
     .tooltip {
@@ -78,9 +81,13 @@
     <div class="tooltip"></div>
   </div>
   <script>
+    var margin = {top: 20, right: 20, bottom: 20, left: 20};
+    var chartOffset = 50;
+    var width = window.innerWidth - margin.left - margin.right;
+    var height = window.innerHeight - margin.top - margin.bottom;
     var svg = d3.select("#bubble-chart").append("svg")
-      .attr("width", 900)
-      .attr("height", 680);
+      .attr("width", width)
+      .attr("height", height);
 
     d3.csv("/world_population.csv")
       .get(data => {
@@ -91,12 +98,18 @@
 
         var worldPopulation = d3.sum(currentYear, d => d.population);
 
-        var normalizedCountries = currentYear.map(country => ({
-          name: country.name,
-          population: country.population,
-          percentage_world: country.population / worldPopulation
-        }));
+        var normalizedCountries = currentYear
+          .map(country => ({
+            name: country.name,
+            population: country.population,
+            percentage_world: country.population / worldPopulation
+          }))
+          .sort((a, b) => {
+            return d3.descending(a.percentage_world, b.percentage_world);
+          });
 
+        // Sort by population size so that smaller countries aren't hidden
+        // under larger
         var commaFormat = d3.format(",");
         var rand255 = () => Math.ceil(Math.random() * 255);
         var randRGB = () => `rgb(${rand255()}, ${rand255()}, ${rand255()})`;
@@ -105,9 +118,9 @@
           .enter()
           .append("circle")
           .style("fill", randRGB)
-          .attr("r", d => Math.ceil(d.percentage_world * 1000))
-          .attr("cx", d => Math.ceil(Math.random(d.population) * 900))
-          .attr("cy", d => Math.ceil(Math.random(d.population) * 680))
+          .attr("r", d => Math.ceil(Math.sqrt(d.percentage_world) * 100))
+          .attr("cx", d => Math.ceil(Math.random(d.population) * width))
+          .attr("cy", d => Math.ceil(Math.random(d.population) * height))
           .on("mouseenter", function(d) {
             d3.select(this)
               .style("opacity", "1")
